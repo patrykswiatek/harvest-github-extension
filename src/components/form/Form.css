@@ -1,0 +1,11 @@
+.Form {
+  display: grid;
+  row-gap: 2rem;
+  grid-auto-rows: min-content;
+  height: 100%;
+
+  .input {
+    padding: 0.5rem;
+    width: 100%;
+  }
+}

@@ -1,33 +1,49 @@
-import React, { FC, useState } from 'react'
+import React, { useState } from 'react'
+import type { FC, MouseEvent } from 'react'
 
-import { SelectContext } from '@/contexts/select.context'
-import { SelectProps } from '@/types/props/select.props'
+import { SelectOption, SelectProps } from '@/types/props/select.props'
 
-const Select: FC<SelectProps> = ({ children, defaultValue, placeholder }) => {
-  const [selectedOption, setSelectedOption] = useState(defaultValue)
+import './Select.css'
+
+const Select: FC<SelectProps> = ({ options, selected, onChange }) => {
   const [showDropdown, setShowDropdown] = useState(false)
 
-  const selectPlaceholder = placeholder || 'Choose an option'
-
-  const updateSelectedOption = (option: number) => {
-    setSelectedOption(option)
-    setShowDropdown(false)
+  const toggleDropdown = (event: MouseEvent<HTMLElement>, isOpened: boolean) => {
+    event.preventDefault()
+    setShowDropdown(isOpened)
   }
 
-  const showDropdownHandler = () => {
-    setShowDropdown((showDropdown) => !showDropdown)
+  const handleChange = (event: MouseEvent<HTMLElement>, option: SelectOption) => {
+    toggleDropdown(event, false)
+    onChange(option)
   }
 
   return (
-    <SelectContext.Provider value={{ selectedOption, updateSelectedOption }}>
-      <div
-        className={showDropdown ? 'selected-text active' : 'selected-text'}
-        onClick={showDropdownHandler}
+    <div className='select'>
+      <button
+        className='select-button'
+        role='combobox'
+        aria-labelledby='select button'
+        aria-haspopup='listbox'
+        aria-expanded={showDropdown}
+        aria-controls='select-dropdown'
+        onClick={(event) => toggleDropdown(event, true)}
       >
-        {selectedOption ?? selectPlaceholder}
-      </div>
-      <ul>{children}</ul>
-    </SelectContext.Provider>
+        {selected?.title || options[0]?.title}
+      </button>
+      <ul role='listbox' id='select-dropdown' className='list'>
+        {options?.map(({ id, title }, index) => (
+          <li
+            key={index}
+            role='option'
+            value={id}
+            onClick={(e) => handleChange(e, { id, title })}
+          >
+            {title}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

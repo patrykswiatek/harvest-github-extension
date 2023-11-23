@@ -7,7 +7,9 @@
       "@/api/*": ["./api/*"],
       "@/components/*": ["./components/*"],
       "@/contexts/*": ["./contexts/*"],
-      "@/types/*": ["./types/*"]
+      "@/styles/*": ["./styles/*"],
+      "@/types/*": ["./types/*"],
+      "@/utils/*": ["./utils/*"]
     }
   }
 }

@@ -1,33 +1,89 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, FormEvent, useMemo, useState } from 'react'
 
+import { createTask, createTaskAssignment, trackTimeViaDuration } from '@/api'
+import Form from '@/components/form/Form'
+import { useFormData } from '@/hooks/use-form-data'
+import {
+  FormField,
+  FormValueTypeByField,
+  FormValues,
+} from '@/types/form-values'
+import { FormProps } from '@/types/props/form.props'
+import { timeToDecimal } from '@/utils/time-to-decimal'
+
+import '@/styles/global.css'
 import '@/App.css'
-import { getUserOpenPullRequests } from '@/api'
-import Option from '@/components/select/atoms/option/Option'
-import Select from '@/components/select/Select'
-import { OpenPullRequestsList } from '@/types/requests-output'
 
 const App: FC = () => {
-  const [openPullRequests, setOpenPullRequests] =
-    useState<OpenPullRequestsList>()
+  const { openPullRequests, projects } = useFormData()
 
-  const getGithubData = async () => {
-    const { data } = await getUserOpenPullRequests('patrykswiatek')
-    setOpenPullRequests(data)
+  const [formValues, setFormValues] = useState<FormValues>({
+    [FormField.PullRequest]: openPullRequests?.[0],
+    [FormField.Project]: projects?.[0],
+    [FormField.Hours]: '',
+  })
+
+  const onChangeFormValue = <T extends FormField>(
+    field: keyof FormValues,
+    value: FormValueTypeByField<T>
+  ) => {
+    setFormValues((formValues) => ({ ...formValues, [field]: value }))
   }
 
-  useEffect(() => {
-    getGithubData()
-  }, [])
+  const onSubmitForm = async (event: FormEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+
+    // Ensure all required form fields have values; if not, exit early
+    if (
+      !formValues[FormField.PullRequest] ||
+      !formValues[FormField.Project] ||
+      !formValues[FormField.Hours]
+    ) {
+      console.error('Required form fields are missing')
+      return
+    }
+
+    const name = formValues[FormField.PullRequest]?.title ?? ''
+
+    // // TODO:
+    const task = await createTask({ name: `${name}${Math.random()}` })
+    const taskData = {
+      project_id: formValues[FormField.Project]?.id,
+      task_id: task.data.id,
+    }
+
+    Promise.all([
+      await createTaskAssignment(taskData),
+      trackTimeViaDuration({
+        ...taskData,
+        spent_date: new Date().toISOString(),
+        hours: timeToDecimal(formValues[FormField.Hours]),
+      }),
+    ])
+  }
+
+  const selectItems: FormProps['selectItems'] = useMemo(
+    () => [
+      {
+        id: FormField.PullRequest,
+        options: openPullRequests,
+      },
+      {
+        id: FormField.Project,
+        options: projects,
+      },
+    ],
+    [JSON.stringify(openPullRequests), JSON.stringify(projects)]
+  )
 
   return (
     <div className='App'>
-      <Select>
-        {openPullRequests?.map(({ id, title }) => (
-          <Option key={id} value={id}>
-            {title}
-          </Option>
-        ))}
-      </Select>
+      <Form
+        formValues={formValues}
+        selectItems={selectItems}
+        onSubmitForm={onSubmitForm}
+        onChangeFormValue={onChangeFormValue}
+      />
     </div>
   )
 }

@@ -3,8 +3,9 @@
   height: 20rem;
   width: 30rem;
   background: yellow;
-  font-size: 3rem;
-  color: black;
+  font-size: 1rem;
+  color: var(--heavy-metal);
+  padding: 2rem;
 }
 
 
