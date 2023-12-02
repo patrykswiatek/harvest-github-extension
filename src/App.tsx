@@ -1,6 +1,6 @@
-import React, { FC, FormEvent, useMemo, useState } from 'react'
+import React, { FC, FormEvent, useEffect, useMemo, useState } from 'react'
 
-import { createTask, createTaskAssignment, trackTimeViaDuration } from '@/api'
+import { createTaskAssignment, trackTimeViaDuration } from '@/api'
 import Form from '@/components/form/Form'
 import { useFormData } from '@/hooks/use-form-data'
 import {
@@ -13,51 +13,84 @@ import { timeToDecimal } from '@/utils/time-to-decimal'
 
 import '@/styles/global.css'
 import '@/App.css'
+import { isObjectWithProperty } from './utils/is-object-with-property'
+
+const TEXT_INPUT_ITEMS: FormProps['textInputItems'] = [
+  {
+    id: FormField.Hours,
+    type: 'time',
+    isShort: true,
+  },
+  {
+    id: FormField.Date,
+    type: 'date',
+    isShort: true,
+  },
+  {
+    id: FormField.Notes,
+    type: 'text',
+  },
+]
+
+/**
+ * @example
+ * // returns 2023-10-31
+ * getCurrentDate();
+ * @returns {String} Returns the the current date in 'yyyy-mm-dd' format.
+ */
+const getCurrentDate = () => {
+  return new Date().toISOString().split('T')[0]
+}
 
 const App: FC = () => {
-  const { openPullRequests, projects } = useFormData()
+  const { openPullRequests, projects, tasks, isLoading } = useFormData()
 
   const [formValues, setFormValues] = useState<FormValues>({
-    [FormField.PullRequest]: openPullRequests?.[0],
-    [FormField.Project]: projects?.[0],
+    [FormField.Date]: '',
+    [FormField.PullRequest]: undefined,
+    [FormField.Project]: undefined,
+    [FormField.Task]: undefined,
     [FormField.Hours]: '',
+    [FormField.Notes]: '',
   })
 
   const onChangeFormValue = <T extends FormField>(
-    field: keyof FormValues,
+    field: T,
     value: FormValueTypeByField<T>
   ) => {
-    setFormValues((formValues) => ({ ...formValues, [field]: value }))
+    const shouldUpdateNotes =
+      field === FormField.PullRequest && isObjectWithProperty(value, 'title')
+
+    setFormValues((formValues) => ({
+      ...formValues,
+      [field]: value,
+      ...(shouldUpdateNotes && { [FormField.Notes]: String(value?.title) }),
+    }))
   }
 
   const onSubmitForm = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
+    const hasAllValues = Object.values(formValues).every((value) => !!value)
+
     // Ensure all required form fields have values; if not, exit early
-    if (
-      !formValues[FormField.PullRequest] ||
-      !formValues[FormField.Project] ||
-      !formValues[FormField.Hours]
-    ) {
+    if (!hasAllValues) {
       console.error('Required form fields are missing')
       return
     }
 
-    const name = formValues[FormField.PullRequest]?.title ?? ''
-
-    // // TODO:
-    const task = await createTask({ name: `${name}${Math.random()}` })
     const taskData = {
-      project_id: formValues[FormField.Project]?.id,
-      task_id: task.data.id,
+      project_id: formValues[FormField.Project]?.id ?? 0,
+      task_id: formValues[FormField.Task]?.id ?? 0,
     }
 
     Promise.all([
       await createTaskAssignment(taskData),
       trackTimeViaDuration({
         ...taskData,
-        spent_date: new Date().toISOString(),
+        spent_date: new Date(formValues[FormField.Date]).toISOString(),
         hours: timeToDecimal(formValues[FormField.Hours]),
+        notes: formValues[FormField.Notes],
       }),
     ])
   }
@@ -72,18 +105,49 @@ const App: FC = () => {
         id: FormField.Project,
         options: projects,
       },
+      {
+        id: FormField.Task,
+        options: tasks,
+      },
     ],
-    [JSON.stringify(openPullRequests), JSON.stringify(projects)]
+    [
+      JSON.stringify(openPullRequests),
+      JSON.stringify(projects),
+      JSON.stringify(tasks),
+    ]
   )
+
+  const setInitialInputValues = () => {
+    setFormValues((formValues) => ({
+      ...formValues,
+      [FormField.Date]: getCurrentDate(),
+      [FormField.PullRequest]: openPullRequests?.[0],
+      [FormField.Project]: projects?.[0],
+      [FormField.Task]: tasks?.[0],
+      [FormField.Hours]: '00:00',
+      [FormField.Notes]: openPullRequests?.[0]?.title ?? '',
+    }))
+  }
+
+  useEffect(() => {
+    if (!isLoading) {
+      setInitialInputValues()
+    }
+  }, [isLoading])
 
   return (
     <div className='App'>
-      <Form
-        formValues={formValues}
-        selectItems={selectItems}
-        onSubmitForm={onSubmitForm}
-        onChangeFormValue={onChangeFormValue}
-      />
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <Form
+          formValues={formValues}
+          selectItems={selectItems}
+          textInputItems={TEXT_INPUT_ITEMS}
+          onSubmitForm={onSubmitForm}
+          onChangeFormValue={onChangeFormValue}
+        />
+      )}
     </div>
   )
 }

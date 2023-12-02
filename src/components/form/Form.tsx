@@ -1,14 +1,15 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 
+import TextInput from '@/components/form/text-input/TextInput'
+import PrimaryButton from '@/components/primary-button/PrimaryButton'
 import Select from '@/components/select/Select'
-import { FormField } from '@/types/form-values'
 import type { FormProps } from '@/types/props/form.props'
-
 import './Form.css'
 
 const Form: FC<FormProps> = ({
   formValues,
   selectItems,
+  textInputItems,
   onSubmitForm,
   onChangeFormValue,
 }) => {
@@ -17,23 +18,22 @@ const Form: FC<FormProps> = ({
       {selectItems.map(({ id, options }) => (
         <Select
           key={id}
+          label={id}
           options={options}
           selected={formValues[id]}
           onChange={(option) => onChangeFormValue<typeof id>(id, option)}
         />
       ))}
-      <input
-        className='input'
-        type='time'
-        placeholder='Enter time'
-        value={formValues[FormField.Hours]}
-        onChange={({ target }) =>
-          onChangeFormValue<FormField.Hours>(FormField.Hours, target.value)
-        }
-      />
-      <button type='submit' onClick={onSubmitForm}>
-        Submit
-      </button>
+      {textInputItems.map(({ id, isShort, type }) => (
+        <TextInput
+          className={isShort ? 'small-width' : ''}
+          label={id}
+          type={type}
+          value={formValues[id]}
+          onChange={(time) => onChangeFormValue<typeof id>(id, time)}
+        />
+      ))}
+      <PrimaryButton className='submit-btn' type='submit' text='Submit' handleClick={onSubmitForm} />
     </form>
   )
 }

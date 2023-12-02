@@ -1,11 +1,10 @@
 .App {
   text-align: center;
-  height: 20rem;
   width: 30rem;
-  background: yellow;
+  background: var(--white);
   font-size: 1rem;
   color: var(--heavy-metal);
-  padding: 2rem;
+  padding: 1rem;
 }
 
 

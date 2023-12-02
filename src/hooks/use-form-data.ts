@@ -1,20 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { getGithubUserData, getUserOpenPullRequests, getUserProjects } from '@/api'
+import {
+  getAllTasks,
+  getGithubUserData,
+  getUserOpenPullRequests,
+  getUserProjects,
+} from '@/api'
 import { SelectOption } from '@/types/props/select.props'
 import { mapDataToSelectOptions } from '@/utils/map-data-to-select-options'
 
 export const useFormData = () => {
-  const [{ openPullRequests, projects }, setData] = useState<
-    Record<'openPullRequests' | 'projects', SelectOption[]>
+  const [{ openPullRequests, projects, tasks }, setData] = useState<
+    Record<'openPullRequests' | 'projects' | 'tasks', SelectOption[]>
   >({
     openPullRequests: [],
     projects: [],
+    tasks: [],
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   const isDataFetchedRef = useRef(false)
 
-  const getGithubData = async () => {
+  const fetchGithubData = async () => {
     const { data } = await getGithubUserData()
     const { data: pullRequests } = await getUserOpenPullRequests({
       username: data.login,
@@ -26,9 +33,11 @@ export const useFormData = () => {
     }))
   }
 
-  const getProjects = async () => {
+  const fetchProjects = async () => {
     const { data: projects } = await getUserProjects()
-    const mappedProjects = projects.user_assignments.map(({ project }) => project)
+    const mappedProjects = projects.user_assignments.map(
+      ({ project }) => project
+    )
 
     setData((data) => ({
       ...data,
@@ -36,13 +45,24 @@ export const useFormData = () => {
     }))
   }
 
+  const fetchTasks = async () => {
+    const { data: tasks } = await getAllTasks()
+
+    setData((data) => ({
+      ...data,
+      tasks: mapDataToSelectOptions(tasks.tasks, ['id', 'name']),
+    }))
+  }
+
   useEffect(() => {
     if (isDataFetchedRef.current) return
 
-    getGithubData()
-    getProjects()
-    isDataFetchedRef.current = true
+    setIsLoading(true)
+    Promise.all([fetchGithubData(), fetchProjects(), fetchTasks()]).finally(() => {
+      isDataFetchedRef.current = true
+      setIsLoading(false)
+    })
   }, [])
 
-  return { openPullRequests, projects }
+  return { openPullRequests, projects, tasks, isLoading }
 }

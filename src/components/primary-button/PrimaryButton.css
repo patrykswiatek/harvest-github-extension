@@ -1,0 +1,6 @@
+.PrimaryButton {
+  background: var(--jewel);
+  border-color: var(--jewel);
+  color: var(--white);
+  text-align: center;
+}
