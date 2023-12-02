@@ -2,7 +2,7 @@ import type { FC } from 'react'
 
 import type { PrimaryButtonProps } from '@/types/props/primary-button.props'
 
-import './PrimaryButton.css'
+import '@/components/primary-button/PrimaryButton.css'
 import '@/styles/form-element.css'
 
 const PrimaryButton: FC<PrimaryButtonProps> = ({

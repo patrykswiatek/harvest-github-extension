@@ -2,7 +2,7 @@ import { ChangeEvent, type FC } from 'react'
 
 import type { TextInputProps } from '@/types/props/text-input.props'
 
-import './TextInput.css'
+import '@/components/form/text-input/TextInput.css'
 import '@/styles/form-element.css'
 
 const TextInput: FC<TextInputProps> = ({

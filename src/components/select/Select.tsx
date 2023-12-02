@@ -3,7 +3,7 @@ import type { FC, MouseEvent } from 'react'
 
 import { SelectOption, SelectProps } from '@/types/props/select.props'
 
-import './Select.css'
+import '@/components/select/Select.css'
 import '@/styles/form-element.css'
 
 const Select: FC<SelectProps> = ({ className, label, options, selected, onChange }) => {

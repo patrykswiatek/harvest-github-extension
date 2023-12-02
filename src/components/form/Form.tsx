@@ -4,7 +4,7 @@ import TextInput from '@/components/form/text-input/TextInput'
 import PrimaryButton from '@/components/primary-button/PrimaryButton'
 import Select from '@/components/select/Select'
 import type { FormProps } from '@/types/props/form.props'
-import './Form.css'
+import '@/components/form/Form.css'
 
 const Form: FC<FormProps> = ({
   formValues,

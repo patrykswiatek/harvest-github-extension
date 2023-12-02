@@ -9,11 +9,12 @@ import {
   FormValues,
 } from '@/types/form-values'
 import { FormProps } from '@/types/props/form.props'
+import { getCurrentDate } from '@/utils/get-current-date'
+import { isObjectWithProperty } from '@/utils/is-object-with-property'
 import { timeToDecimal } from '@/utils/time-to-decimal'
 
 import '@/styles/global.css'
 import '@/App.css'
-import { isObjectWithProperty } from './utils/is-object-with-property'
 
 const TEXT_INPUT_ITEMS: FormProps['textInputItems'] = [
   {
@@ -31,16 +32,6 @@ const TEXT_INPUT_ITEMS: FormProps['textInputItems'] = [
     type: 'text',
   },
 ]
-
-/**
- * @example
- * // returns 2023-10-31
- * getCurrentDate();
- * @returns {String} Returns the the current date in 'yyyy-mm-dd' format.
- */
-const getCurrentDate = () => {
-  return new Date().toISOString().split('T')[0]
-}
 
 const App: FC = () => {
   const { openPullRequests, projects, tasks, isLoading } = useFormData()
