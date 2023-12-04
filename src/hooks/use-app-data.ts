@@ -6,30 +6,31 @@ import {
   getUserOpenPullRequests,
   getUserProjects,
 } from '@/api'
-import { SelectOption } from '@/types/props/select.props'
+import { AppData } from '@/types/app-data'
 import { mapDataToSelectOptions } from '@/utils/map-data-to-select-options'
 
-export const useFormData = () => {
-  const [{ openPullRequests, projects, tasks }, setData] = useState<
-    Record<'openPullRequests' | 'projects' | 'tasks', SelectOption[]>
-  >({
-    openPullRequests: [],
+export const useAppData = () => {
+  const [{ pullRequests, projects, tasks, user }, setData] = useState<AppData>({
+    pullRequests: [],
     projects: [],
     tasks: [],
+    user: null,
   })
   const [isLoading, setIsLoading] = useState(false)
 
   const isDataFetchedRef = useRef(false)
 
   const fetchGithubData = async () => {
-    const { data } = await getGithubUserData()
+    const { data: userData } = await getGithubUserData()
+    const { avatar_url: avatarUrl, login, name } = userData
     const { data: pullRequests } = await getUserOpenPullRequests({
-      username: data.login,
+      username: login,
     })
 
     setData((data) => ({
       ...data,
-      openPullRequests: mapDataToSelectOptions(pullRequests, ['id', 'title']),
+      pullRequests: mapDataToSelectOptions(pullRequests, ['id', 'title']),
+      user: { avatarUrl, name },
     }))
   }
 
@@ -58,11 +59,13 @@ export const useFormData = () => {
     if (isDataFetchedRef.current) return
 
     setIsLoading(true)
-    Promise.all([fetchGithubData(), fetchProjects(), fetchTasks()]).finally(() => {
-      isDataFetchedRef.current = true
-      setIsLoading(false)
-    })
+    Promise.all([fetchGithubData(), fetchProjects(), fetchTasks()]).finally(
+      () => {
+        isDataFetchedRef.current = true
+        setIsLoading(false)
+      }
+    )
   }, [])
 
-  return { openPullRequests, projects, tasks, isLoading }
+  return { pullRequests, projects, tasks, user, isLoading }
 }

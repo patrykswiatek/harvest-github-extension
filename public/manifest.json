@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Harvest/Github extension",
+  "name": "Harvest/Github extension",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
