@@ -1,9 +1,9 @@
 import type { FC } from 'react'
 
-import '@/components/loader/Loader.css'
+import styles from '@/components/loader/Loader.module.scss'
 
 const Loader: FC = () => {
-  return <div className='Loader'>Loading...</div>
+  return <div className={styles.Loader}>Loading...</div>
 }
 
 export default Loader

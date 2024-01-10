@@ -1,12 +1,12 @@
 import React, { FC, useEffect, useState } from 'react'
 
+import styles from '@/App.module.scss'
 import Form from '@/components/form/Form'
 import Header from '@/components/header/Header'
 import Loader from '@/components/loader/Loader'
 import { useAppData } from '@/hooks/use-app-data'
 
-import '@/styles/global.css'
-import '@/App.css'
+import '@/styles/global.scss'
 
 const GITHUB_ORIGIN = 'https://github.com'
 
@@ -34,11 +34,11 @@ const App: FC = () => {
   }, [])
 
   return (
-    <div className='App'>
+    <div className={styles.App}>
       {isLoading ? (
         <Loader />
       ) : (
-        <div className='content'>
+        <div className={styles.content}>
           <Header user={user} />
           <Form
             data={{ pullRequests, projects, tasks, isLoading }}

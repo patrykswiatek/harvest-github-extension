@@ -1,20 +1,20 @@
 import type { FC } from 'react'
 
+import styles from '@/components/button/Button.module.scss'
 import type { ButtonProps } from '@/types/props/button.props'
-
-import '@/styles/form-element.css'
-import '@/components/button/Button.css'
 
 const Button: FC<ButtonProps> = ({
   className,
   text,
   type = 'button',
+  disabled,
   handleClick,
 }) => {
   return (
     <button
-      className={`Button form-element ${className}`}
+      className={`${styles.Button} ${className ?? ''}`}
       type={type}
+      disabled={disabled}
       onClick={handleClick}
     >
       {text}

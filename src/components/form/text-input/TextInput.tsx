@@ -1,9 +1,8 @@
-import { ChangeEvent, type FC } from 'react'
+import { type FC } from 'react'
 
+import componentStyles from '@/components/form/text-input/TextInput.module.scss'
+import formInputStyles from '@/styles/form-element.module.scss'
 import type { TextInputProps } from '@/types/props/text-input.props'
-
-import '@/components/form/text-input/TextInput.css'
-import '@/styles/form-element.css'
 
 const TextInput: FC<TextInputProps> = ({
   className,
@@ -12,23 +11,19 @@ const TextInput: FC<TextInputProps> = ({
   value,
   onChange,
 }) => {
-  const handleValueChange = ({ target }: ChangeEvent<HTMLInputElement>) => {
-    onChange(target.value)
-  }
-
   return (
-    <div className={`TextInput ${className}`}>
+    <div className={`${componentStyles.TextInput} ${className ?? ''}`}>
       {label && (
-        <label className='input-label' htmlFor='input'>
+        <label className={formInputStyles['input-label']} htmlFor='input'>
           {label}
         </label>
       )}
       <input
+        className={formInputStyles['form-element']}
         id='input'
-        className='input form-element'
         type={type}
         value={value}
-        onChange={handleValueChange}
+        onChange={({ target }) => onChange(target.value)}
       />
     </div>
   )

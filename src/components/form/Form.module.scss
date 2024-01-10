@@ -11,11 +11,20 @@
     grid-column: span 2 / span 2;
   }
 
-  .small-width {
+  .text-input-short {
     grid-column: span 1 / span 1;
   }
 
-  .submit-btn {
+  .button {
     margin-top: 1rem;
+    width: 100%;
+
+    &-wrapper {
+      align-items: flex-end;
+      display: flex;
+      height: 3rem;
+      justify-content: center;
+      width: 100%;
+    }
   }
 }

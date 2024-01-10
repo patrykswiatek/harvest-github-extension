@@ -1,7 +1,9 @@
 import { type FC, FormEvent, useEffect, useMemo, useState } from 'react'
 
 import { createTaskAssignment, trackTimeViaDuration } from '@/api'
+import Alert from '@/components/alert/Alert'
 import Button from '@/components/button/Button'
+import styles from '@/components/form/Form.module.scss'
 import TextInput from '@/components/form/text-input/TextInput'
 import Select from '@/components/select/Select'
 import {
@@ -9,11 +11,14 @@ import {
   FormValueTypeByField,
   FormValues,
 } from '@/types/form-values'
-import type { FormProps, SelectItem, TextInputItem } from '@/types/props/form.props'
+import type {
+  FormProps,
+  SelectItem,
+  TextInputItem,
+} from '@/types/props/form.props'
 import { getCurrentDate } from '@/utils/get-current-date'
 import { isObjectWithProperty } from '@/utils/is-object-with-property'
 import { timeToDecimal } from '@/utils/time-to-decimal'
-import '@/components/form/Form.css'
 
 const TEXT_INPUT_ITEMS: TextInputItem[] = [
   {
@@ -41,8 +46,17 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
     [FormField.Hours]: '',
     [FormField.Notes]: '',
   })
+  const [showMessage, setShowMessage] = useState({
+    error: false,
+    success: false,
+  })
 
   const { pullRequests, projects, tasks, isLoading } = data
+
+  const isFormValid = useMemo(
+    () => Object.values(formValues).every((value) => !!value),
+    [formValues]
+  )
 
   const selectItems: SelectItem[] = useMemo(
     () => [
@@ -81,12 +95,10 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
   }
 
   const getPullRequestTitleBasedOnTab = () => {
-    return pullRequests.find(({ title }) => {
-      return activeTabTitle?.includes(title)
-    })
+    return pullRequests.find(({ title }) => activeTabTitle?.includes(title))
   }
 
-  const setInitialInputValues = () => {
+  const setInitialFormValues = () => {
     const activeTabPullRequest = getPullRequestTitleBasedOnTab()
 
     setFormValues((formValues) => ({
@@ -95,21 +107,23 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
       [FormField.PullRequest]: activeTabPullRequest ?? pullRequests?.[0],
       [FormField.Project]: projects?.[0],
       [FormField.Task]: tasks?.[0],
-      [FormField.Hours]: '00:00',
+      [FormField.Hours]: '',
       [FormField.Notes]: pullRequests?.[0]?.title ?? '',
     }))
+  }
+
+  const handleMessage = (type: keyof typeof showMessage) => {
+    setShowMessage((showMessage) => ({ ...showMessage, [type]: true }))
+
+    setTimeout(() => {
+      setShowMessage((showMessage) => ({ ...showMessage, [type]: false }))
+    }, 3000)
   }
 
   const onSubmitForm = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
-    const hasAllValues = Object.values(formValues).every((value) => !!value)
-
-    // Ensure all required form fields have values; if not, exit early
-    if (!hasAllValues) {
-      console.error('Required form fields are missing')
-      return
-    }
+    if (!isFormValid) return
 
     const taskData = {
       project_id: formValues[FormField.Project]?.id ?? 0,
@@ -125,16 +139,38 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
         notes: formValues[FormField.Notes],
       }),
     ])
+      .then(() => handleMessage('success'))
+      .catch(() => handleMessage('error'))
+      .finally(() => setInitialFormValues())
   }
 
-  useEffect(() => {
-    if (!isLoading) {
-      setInitialInputValues()
+  const $formContent = useMemo(() => {
+    switch (true) {
+      case showMessage.error:
+        return (
+          <Alert type='error' text='Something went wrong. Try again later.' />
+        )
+      case showMessage.success:
+        return <Alert type='success' text='Success!' />
+      default:
+        return (
+          <Button
+            className={styles.button}
+            type='submit'
+            text='Submit'
+            disabled={!isFormValid}
+            handleClick={onSubmitForm}
+          />
+        )
     }
+  }, [isFormValid, showMessage.error, showMessage.success, onSubmitForm])
+
+  useEffect(() => {
+    if (!isLoading) setInitialFormValues()
   }, [isLoading])
 
   return (
-    <form className='Form'>
+    <form className={styles.Form}>
       {selectItems.map(({ id, options }) => (
         <Select
           key={id}
@@ -147,19 +183,14 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
       {TEXT_INPUT_ITEMS.map(({ id, isShort, type }) => (
         <TextInput
           key={id}
-          className={isShort ? 'small-width' : ''}
+          className={isShort ? styles['text-input-short'] : ''}
           label={id}
           type={type}
           value={formValues[id]}
           onChange={(time) => onChangeFormValue<typeof id>(id, time)}
         />
       ))}
-      <Button
-        className='submit-btn'
-        type='submit'
-        text='Submit'
-        handleClick={onSubmitForm}
-      />
+      <div className={styles['button-wrapper']}>{$formContent}</div>
     </form>
   )
 }

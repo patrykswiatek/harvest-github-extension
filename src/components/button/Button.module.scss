@@ -1,0 +1,14 @@
+.Button {
+  background: var(--jewel);
+  border: 1px solid var(--jewel);
+  border-radius: 0.25rem;
+  color: var(--white);
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  text-align: center;
+
+  &:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
