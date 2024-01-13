@@ -10,7 +10,7 @@ import { AppData } from '@/types/app-data'
 import { mapDataToSelectOptions } from '@/utils/map-data-to-select-options'
 
 export const useAppData = () => {
-  const [{ pullRequests, projects, tasks, user }, setData] = useState<AppData>({
+  const [appData, setAppData] = useState<AppData>({
     pullRequests: [],
     projects: [],
     tasks: [],
@@ -27,7 +27,7 @@ export const useAppData = () => {
       username: login,
     })
 
-    setData((data) => ({
+    setAppData((data) => ({
       ...data,
       pullRequests: mapDataToSelectOptions(pullRequests, ['id', 'title']),
       user: { avatarUrl, name },
@@ -40,7 +40,7 @@ export const useAppData = () => {
       ({ project }) => project
     )
 
-    setData((data) => ({
+    setAppData((data) => ({
       ...data,
       projects: mapDataToSelectOptions(mappedProjects, ['id', 'name']),
     }))
@@ -49,7 +49,7 @@ export const useAppData = () => {
   const fetchTasks = async () => {
     const { data: tasks } = await getAllTasks()
 
-    setData((data) => ({
+    setAppData((data) => ({
       ...data,
       tasks: mapDataToSelectOptions(tasks.tasks, ['id', 'name']),
     }))
@@ -67,5 +67,5 @@ export const useAppData = () => {
     )
   }, [])
 
-  return { pullRequests, projects, tasks, user, isLoading }
+  return { ...appData, isLoading }
 }

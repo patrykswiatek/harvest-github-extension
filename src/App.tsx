@@ -6,7 +6,7 @@ import Header from '@/components/header/Header'
 import Loader from '@/components/loader/Loader'
 import { useAppData } from '@/hooks/use-app-data'
 
-import '@/styles/global.scss'
+import '@/styles/global.module.scss'
 
 const GITHUB_ORIGIN = 'https://github.com'
 
