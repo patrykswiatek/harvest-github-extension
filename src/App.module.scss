@@ -1,0 +1,16 @@
+.App {
+  background: var(--white);
+  border: 1px solid var(--heavy-metal-15);
+  text-align: center;
+  width: 30rem;
+  background: var(--white);
+  font-size: 1rem;
+  color: var(--heavy-metal);
+
+  .content {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+

@@ -6,7 +6,6 @@ const axiosClient = axios.create({
     common: {
       'Harvest-Account-Id': process.env.REACT_APP_HARVEST_ACCOUNT_ID,
       Authorization: `Bearer ${process.env.REACT_APP_HARVEST_TOKEN}`,
-      'User-Agent': 'Harvest API Client',
     }
   }
 })

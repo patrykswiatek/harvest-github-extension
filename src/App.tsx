@@ -1,33 +1,51 @@
 import React, { FC, useEffect, useState } from 'react'
 
-import '@/App.css'
-import { getUserOpenPullRequests } from '@/api'
-import Option from '@/components/select/atoms/option/Option'
-import Select from '@/components/select/Select'
-import { OpenPullRequestsList } from '@/types/requests-output'
+import styles from '@/App.module.scss'
+import Form from '@/components/form/Form'
+import Header from '@/components/header/Header'
+import Loader from '@/components/loader/Loader'
+import { useAppData } from '@/hooks/use-app-data'
+
+import '@/styles/global.module.scss'
+
+const GITHUB_ORIGIN = 'https://github.com'
 
 const App: FC = () => {
-  const [openPullRequests, setOpenPullRequests] =
-    useState<OpenPullRequestsList>()
+  const { pullRequests, projects, tasks, user, isLoading } = useAppData()
 
-  const getGithubData = async () => {
-    const { data } = await getUserOpenPullRequests('patrykswiatek')
-    setOpenPullRequests(data)
+  const [activeGithubTabTitle, setActiveGithubTabTitle] =
+    useState<chrome.tabs.Tab['title']>()
+
+  const handleActiveTab = () => {
+    chrome.tabs?.query(
+      { active: true, currentWindow: true },
+      ([{ url = '', title }]) => {
+        if (new URL(url).origin !== GITHUB_ORIGIN) return
+
+        setActiveGithubTabTitle(title)
+      }
+    )
   }
 
   useEffect(() => {
-    getGithubData()
+    if (activeGithubTabTitle) return
+
+    handleActiveTab()
   }, [])
 
   return (
-    <div className='App'>
-      <Select>
-        {openPullRequests?.map(({ id, title }) => (
-          <Option key={id} value={id}>
-            {title}
-          </Option>
-        ))}
-      </Select>
+    <div className={styles.App}>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <div className={styles.content}>
+          <Header user={user} />
+          <Form
+            data={{ pullRequests, projects, tasks, isLoading }}
+            activeTabTitle={activeGithubTabTitle}
+          />
+        </div>
+      )}
     </div>
   )
 }

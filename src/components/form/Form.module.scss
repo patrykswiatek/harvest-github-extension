@@ -1,0 +1,30 @@
+.Form {
+  display: grid;
+  column-gap: 0.5rem;
+  row-gap: 0.5rem;
+  grid-auto-rows: min-content;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 100%;
+  padding: 1rem;
+
+  > * {
+    grid-column: span 2 / span 2;
+  }
+
+  .text-input-short {
+    grid-column: span 1 / span 1;
+  }
+
+  .button {
+    margin-top: 1rem;
+    width: 100%;
+
+    &-wrapper {
+      align-items: flex-end;
+      display: flex;
+      height: 3rem;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}
