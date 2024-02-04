@@ -12,9 +12,8 @@ interface UserData {
   name: GetAuthenticatedData['name']
 }
 
-export type AppData = Record<
-  'pullRequests' | 'projects' | 'tasks',
-  SelectOption[]
-> & {
+export type DataType = 'pullRequests' | 'projects' | 'tasks'
+
+export type AppData = Record<DataType, SelectOption[]> & {
   user: UserData | null
 }

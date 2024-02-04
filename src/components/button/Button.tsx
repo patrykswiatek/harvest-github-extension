@@ -15,7 +15,7 @@ const Button: FC<ButtonProps> = ({
       className={`${styles.Button} ${className ?? ''}`}
       type={type}
       disabled={disabled}
-      onClick={handleClick}
+      {...(handleClick && { onClick: handleClick })}
     >
       {text}
     </button>

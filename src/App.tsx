@@ -1,17 +1,17 @@
-import React, { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 
 import styles from '@/App.module.scss'
 import Form from '@/components/form/Form'
 import Header from '@/components/header/Header'
 import Loader from '@/components/loader/Loader'
-import { useAppData } from '@/hooks/use-app-data'
+import { useAppDataFetcher } from '@/hooks/use-app-data-fetcher'
 
 import '@/styles/global.module.scss'
 
 const GITHUB_ORIGIN = 'https://github.com'
 
 const App: FC = () => {
-  const { pullRequests, projects, tasks, user, isLoading } = useAppData()
+  const { pullRequests, projects, tasks, user, isLoading } = useAppDataFetcher()
 
   const [activeGithubTabTitle, setActiveGithubTabTitle] =
     useState<chrome.tabs.Tab['title']>()
@@ -19,10 +19,10 @@ const App: FC = () => {
   const handleActiveTab = () => {
     chrome.tabs?.query(
       { active: true, currentWindow: true },
-      ([{ url = '', title }]) => {
-        if (new URL(url).origin !== GITHUB_ORIGIN) return
-
-        setActiveGithubTabTitle(title)
+      ([tab]) => {
+        if (tab && new URL(tab.url || '').origin === GITHUB_ORIGIN) {
+          setActiveGithubTabTitle(tab.title)
+        }
       }
     )
   }
@@ -31,7 +31,7 @@ const App: FC = () => {
     if (activeGithubTabTitle) return
 
     handleActiveTab()
-  }, [])
+  }, [activeGithubTabTitle])
 
   return (
     <div className={styles.App}>

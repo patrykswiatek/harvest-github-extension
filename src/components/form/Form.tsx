@@ -1,4 +1,4 @@
-import { type FC, FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FC, FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { createTaskAssignment, trackTimeViaDuration } from '@/api'
 import Alert from '@/components/alert/Alert'
@@ -80,7 +80,7 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
     ]
   )
 
-  const onChangeFormValue = <T extends FormField>(
+  const onChangeFormValue = useCallback(<T extends FormField>(
     field: T,
     value: FormValueTypeByField<T>
   ) => {
@@ -92,13 +92,13 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
       [field]: value,
       ...(shouldUpdateNotes && { [FormField.Notes]: String(value?.title) }),
     }))
-  }
+  }, [isObjectWithProperty])
 
   const getPullRequestTitleBasedOnTab = () => {
     return pullRequests.find(({ title }) => activeTabTitle?.includes(title))
   }
 
-  const setInitialFormValues = () => {
+  const setInitialFormValues = useCallback(() => {
     const activeTabPullRequest = getPullRequestTitleBasedOnTab()
 
     setFormValues((formValues) => ({
@@ -110,7 +110,7 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
       [FormField.Hours]: '',
       [FormField.Notes]: pullRequests?.[0]?.title ?? '',
     }))
-  }
+  }, [pullRequests?.[0], projects?.[0], tasks?.[0], getCurrentDate])
 
   const handleMessage = (type: keyof typeof showMessage) => {
     setShowMessage((showMessage) => ({ ...showMessage, [type]: true }))
@@ -120,29 +120,32 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
     }, 3000)
   }
 
-  const onSubmitForm = async (event: FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  const handleSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (!isFormValid) return
+    if (!isFormValid) return;
 
-    const taskData = {
-      project_id: formValues[FormField.Project]?.id ?? 0,
-      task_id: formValues[FormField.Task]?.id ?? 0,
-    }
+    try {
+      const taskData = {
+        project_id: formValues[FormField.Project]?.id ?? 0,
+        task_id: formValues[FormField.Task]?.id ?? 0,
+      };
 
-    Promise.all([
-      await createTaskAssignment(taskData),
-      trackTimeViaDuration({
+      await createTaskAssignment(taskData);
+      await trackTimeViaDuration({
         ...taskData,
         spent_date: new Date(formValues[FormField.Date]).toISOString(),
         hours: timeToDecimal(formValues[FormField.Hours]),
         notes: formValues[FormField.Notes],
-      }),
-    ])
-      .then(() => handleMessage('success'))
-      .catch(() => handleMessage('error'))
-      .finally(() => setInitialFormValues())
-  }
+      });
+
+      handleMessage('success');
+    } catch {
+      handleMessage('error');
+    } finally {
+      setInitialFormValues();
+    }
+  }, [formValues, isFormValid]);
 
   const $formContent = useMemo(() => {
     switch (true) {
@@ -159,18 +162,17 @@ const Form: FC<FormProps> = ({ activeTabTitle, data }) => {
             type='submit'
             text='Submit'
             disabled={!isFormValid}
-            handleClick={onSubmitForm}
           />
         )
     }
-  }, [isFormValid, showMessage.error, showMessage.success, onSubmitForm])
+  }, [isFormValid, showMessage.error, showMessage.success, handleSubmit])
 
   useEffect(() => {
     if (!isLoading) setInitialFormValues()
   }, [isLoading])
 
   return (
-    <form className={styles.Form}>
+    <form className={styles.Form} onSubmit={handleSubmit}>
       {selectItems.map(({ id, options }) => (
         <Select
           key={id}
